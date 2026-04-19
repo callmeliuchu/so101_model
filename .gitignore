@@ -1,7 +1,9 @@
 .DS_Store
 .conda/
 .official-mujoco/
+.models/
 outputs/
+external_data/
 __pycache__/
 *.pyc
 my_awesome_follower_arm.json

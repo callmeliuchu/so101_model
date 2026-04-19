@@ -1,0 +1,24 @@
+[
+  {
+    "action": {
+      "shoulder_pan.pos": 0,
+      "shoulder_lift.pos": -20,
+      "elbow_flex.pos": 35,
+      "wrist_flex.pos": -15,
+      "wrist_roll.pos": 0,
+      "gripper.pos": 70
+    },
+    "steps": 240
+  },
+  {
+    "action": {
+      "shoulder_pan.pos": 25,
+      "shoulder_lift.pos": -35,
+      "elbow_flex.pos": 55,
+      "wrist_flex.pos": -25,
+      "wrist_roll.pos": 10,
+      "gripper.pos": 25
+    },
+    "steps": 240
+  }
+]

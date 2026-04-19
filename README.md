@@ -167,6 +167,206 @@ Keyboard controls in `--interactive` mode:
 - `P`: print joint targets
 - `O`: print gripper, cube and bin positions
 
+## LeRobot-Style Command Control
+
+There is now a control path that accepts the same action-key shape used by LeRobot follower robots:
+
+- `shoulder_pan.pos`
+- `shoulder_lift.pos`
+- `elbow_flex.pos`
+- `wrist_flex.pos`
+- `wrist_roll.pos`
+- `gripper.pos`
+
+Launcher:
+
+- [run_lerobot_command.sh](/Users/liuchu/codes/so101_model/run_lerobot_command.sh)
+
+Script:
+
+- [lerobot_command_control.py](/Users/liuchu/codes/so101_model/lerobot_command_control.py)
+
+Recommended mode for now:
+
+- `--apply-mode qpos`
+- This directly mirrors the commanded joint targets into MuJoCo joint positions
+- It is the most stable option if you want the sim arm to follow the same command format as the real arm
+
+Physics actuator mode is also available:
+
+- `--apply-mode actuator`
+- This uses MuJoCo position actuators through `data.ctrl`
+- On this machine and with the current XML gains, the gripper follows well but the arm joints do not yet track targets reliably under gravity
+- Keep this mode for future actuator tuning, not as the default command-mirroring path
+
+Examples:
+
+```bash
+cd /Users/liuchu/codes/so101_model
+
+# One LeRobot-style command from the shell
+./run_lerobot_command.sh \
+  --model task_scene \
+  --apply-mode qpos \
+  --set shoulder_pan.pos=10 \
+  --set shoulder_lift.pos=-20 \
+  --set elbow_flex.pos=35 \
+  --set wrist_flex.pos=-10 \
+  --set wrist_roll.pos=5 \
+  --set gripper.pos=70 \
+  --print-observation
+
+# Same idea, but with a JSON action dict
+./run_lerobot_command.sh \
+  --model task_scene \
+  --apply-mode qpos \
+  --action-json '{"shoulder_pan.pos": 15, "shoulder_lift.pos": -30, "gripper.pos": 20}' \
+  --print-sent-action \
+  --print-observation
+
+# Replay a small action sequence
+./run_lerobot_command.sh \
+  --model task_scene \
+  --apply-mode qpos \
+  --sequence-file ./example_lerobot_sequence.json \
+  --print-observation
+
+# Watch the sequence in the local GLFW viewer
+./run_lerobot_command.sh \
+  --model task_scene \
+  --apply-mode qpos \
+  --sequence-file ./example_lerobot_sequence.json \
+  --viewer
+```
+
+Sequence example:
+
+- [example_lerobot_sequence.json](/Users/liuchu/codes/so101_model/example_lerobot_sequence.json)
+
+Units:
+
+- Body joints default to `degrees`
+- Use `--body-mode radians` if your command producer already emits radians
+- Use `--body-mode range_m100_100` if you want a normalized `-100..100` body command range
+- Gripper is always interpreted as `0..100`, matching LeRobot follower usage
+
+## Public SO101 Episode Import
+
+There is also a helper to pull public SO101 LeRobot episodes from Hugging Face and convert them into the local sequence format used by `run_lerobot_command.sh`.
+
+Launcher:
+
+- [import_hf_lerobot_episode.sh](/Users/liuchu/codes/so101_model/import_hf_lerobot_episode.sh)
+
+Script:
+
+- [import_hf_lerobot_episode.py](/Users/liuchu/codes/so101_model/import_hf_lerobot_episode.py)
+
+Currently supported public sources:
+
+- [samuelcombey/so101_data](https://huggingface.co/datasets/samuelcombey/so101_data)
+- [BobChang/lerobot-so101](https://huggingface.co/datasets/BobChang/lerobot-so101)
+
+These datasets expose `action` as:
+
+- `shoulder_pan.pos`
+- `shoulder_lift.pos`
+- `elbow_flex.pos`
+- `wrist_flex.pos`
+- `wrist_roll.pos`
+- `gripper.pos`
+
+Important note:
+
+- The public SO101 datasets above use body-joint commands in a normalized `-100..100` range
+- For those imported episodes, playback should use `--body-mode range_m100_100`
+
+Example:
+
+```bash
+cd /Users/liuchu/codes/so101_model
+
+# Download one public SO101 episode and convert it to a local sequence
+./import_hf_lerobot_episode.sh \
+  --dataset samuelcombey/so101_data \
+  --episode-index 0 \
+  --stride 5 \
+  --max-frames 60 \
+  --merge-duplicates
+
+# Play the imported episode in the sim
+./run_lerobot_command.sh \
+  --model task_scene \
+  --apply-mode qpos \
+  --body-mode range_m100_100 \
+  --sequence-file ./external_data/samuelcombey__so101_data_episode_000000_sequence.json \
+  --viewer
+```
+
+Generated files are written under:
+
+- `/Users/liuchu/codes/so101_model/external_data`
+
+## Webcam Skeleton Teleop
+
+There is now a first-pass webcam teleoperation tool that maps your arm pose and hand pinch gesture to the SO101 sim.
+
+Launcher:
+
+- [run_webcam_teleop.sh](/Users/liuchu/codes/so101_model/run_webcam_teleop.sh)
+
+Script:
+
+- [webcam_skeleton_teleop.py](/Users/liuchu/codes/so101_model/webcam_skeleton_teleop.py)
+
+What it does:
+
+- webcam RGB stream -> MediaPipe pose + hand landmarks
+- shoulder / elbow / wrist motion -> robot arm joints
+- thumb-index pinch distance -> `gripper.pos`
+- output uses the same LeRobot-style action keys as the other control scripts
+
+Current status:
+
+- this is a practical first-pass teleop demo, not a calibrated retargeting pipeline
+- it works best with one visible arm and a clear side view of your forearm and hand
+- the default control path uses `--apply-mode qpos` for stable direct sim mirroring
+
+First run:
+
+```bash
+cd /Users/liuchu/codes/so101_model
+./setup_conda_env.sh
+./run_webcam_teleop.sh --model scene --mirror
+```
+
+Recommended controls:
+
+- `Space`: capture the current arm pose as the neutral reference
+- `Q` or `Esc`: quit
+
+Recommended startup:
+
+```bash
+./run_webcam_teleop.sh \
+  --model scene \
+  --mirror \
+  --arm-side right \
+  --mapping ik
+```
+
+Notes:
+
+- the script auto-downloads the official MediaPipe `.task` models into `/Users/liuchu/codes/so101_model/.models`
+- use `--no-sim-viewer` if you only want the camera window
+- `--pan-gain` and `--lift-gain` let you tune motion sensitivity
+- `--mapping ik` uses hand-wrist position to drive the robot end effector and is the recommended mode
+- `--mapping joint` keeps the older direct joint heuristic mapping
+- `--lateral-gain-m`, `--vertical-gain-m`, and `--reach-gain-m` tune the IK workspace mapping
+- `--apply-mode actuator` is available, but `qpos` is still the recommended default
+- on macOS, Camera permission must be granted to the host app that launches the script, such as `Terminal.app`, `iTerm2`, or `Codex`
+- if camera open fails on macOS, try `--backend avfoundation`
+
 ## LeRobot Calibration Files
 
 The LeRobot default calibration directory is not inside the repo. By default it resolves to:
