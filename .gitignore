@@ -1,0 +1,8 @@
+.DS_Store
+.conda/
+.official-mujoco/
+outputs/
+__pycache__/
+*.pyc
+my_awesome_follower_arm.json
+my_awesome_leader_arm.json

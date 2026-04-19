@@ -1,0 +1,46 @@
+<mujoco model="so101_task_scene_old">
+    <include file="so101_old_calib.xml" />
+
+    <visual>
+        <headlight diffuse="0.7 0.7 0.7" ambient="0.35 0.35 0.35" specular="0.15 0.15 0.15" />
+        <rgba haze="0.12 0.16 0.20 1" />
+        <global azimuth="150" elevation="-18" offwidth="1280" offheight="960" />
+    </visual>
+
+    <asset>
+        <texture type="skybox" builtin="gradient" rgb1="0.95 0.97 1.0" rgb2="0.65 0.78 0.92" width="512"
+            height="3072" />
+        <texture type="2d" name="desk_tex" builtin="checker" rgb1="0.68 0.62 0.56" rgb2="0.60 0.54 0.49"
+            width="300" height="300" />
+        <material name="desk_mat" texture="desk_tex" texuniform="true" texrepeat="4 4" reflectance="0.05" />
+        <material name="bin_mat" rgba="0.18 0.68 0.80 1" />
+        <material name="cube_mat" rgba="0.93 0.32 0.29 1" />
+        <material name="target_mat" rgba="0.16 0.84 0.43 0.35" />
+    </asset>
+
+    <worldbody>
+        <light pos="0 0 2.5" dir="0 0 -1" directional="true" />
+        <geom name="floor" size="0 0 0.05" pos="0 0 0" type="plane" rgba="0.18 0.2 0.22 1" />
+
+        <geom name="desk" type="box" pos="0.28 0.0 0.11" size="0.30 0.25 0.11" material="desk_mat" />
+
+        <body name="cube" pos="0.34 -0.08 0.245">
+            <freejoint />
+            <geom name="cube_geom" type="box" size="0.018 0.018 0.018" material="cube_mat" density="600"
+                friction="1.1 0.03 0.002" />
+        </body>
+
+        <body name="target_bin" pos="0.24 0.12 0.232">
+            <geom name="bin_base" type="box" size="0.045 0.045 0.008" material="bin_mat" />
+            <geom name="bin_wall_left" type="box" pos="0 0.037 0.03" size="0.045 0.008 0.03" material="bin_mat" />
+            <geom name="bin_wall_right" type="box" pos="0 -0.037 0.03" size="0.045 0.008 0.03" material="bin_mat" />
+            <geom name="bin_wall_front" type="box" pos="0.037 0 0.03" size="0.008 0.045 0.03" material="bin_mat" />
+            <geom name="bin_wall_back" type="box" pos="-0.037 0 0.03" size="0.008 0.045 0.03" material="bin_mat" />
+            <site name="target_zone" pos="0 0 0.02" size="0.032 0.032 0.02" type="box" material="target_mat" />
+        </body>
+
+        <camera name="overview" pos="0.75 -0.65 0.68" xyaxes="0.68 0.73 0 -0.34 0.31 0.89" />
+        <camera name="front_close" pos="0.72 0.0 0.42" xyaxes="0 1 0 -0.32 0 0.95" />
+        <camera name="side_task" pos="0.23 -0.62 0.34" xyaxes="1 0 0 0 0.27 0.96" />
+    </worldbody>
+</mujoco>
