@@ -33,7 +33,10 @@ fi
   "glfw>=2.7,<3" \
   "numpy>=1.26,<3" \
   "imageio>=2.34,<3" \
-  "imageio-ffmpeg>=0.5,<1"
+  "imageio-ffmpeg>=0.5,<1" \
+  "opencv-python>=4.10,<5" \
+  "mediapipe>=0.10.14,<1" \
+  "pyarrow>=17,<24"
 
 echo ""
 echo "Environment ready."
