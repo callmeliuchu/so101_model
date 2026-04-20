@@ -483,7 +483,14 @@ def draw_pose_points(frame, pose_points: dict[str, np.ndarray] | None) -> None:
         cv2.circle(frame, (x, y), 6, (50, 255, 50), -1)
 
 
-def draw_overlay(frame, arm_side: str, mapping: str, action: dict[str, float] | None, neutral_ready: bool) -> None:
+def draw_overlay(
+    frame,
+    arm_side: str,
+    mapping: str,
+    action: dict[str, float] | None,
+    neutral_ready: bool,
+    extra_lines: list[str] | None = None,
+) -> None:
     lines = [
         f"arm={arm_side}",
         f"mapping={mapping}",
@@ -491,6 +498,8 @@ def draw_overlay(frame, arm_side: str, mapping: str, action: dict[str, float] | 
         "q or esc: quit",
         f"neutral={'ready' if neutral_ready else 'auto'}",
     ]
+    if extra_lines:
+        lines = list(extra_lines) + lines
     if action is not None:
         lines.extend(
             [
@@ -503,15 +512,38 @@ def draw_overlay(frame, arm_side: str, mapping: str, action: dict[str, float] | 
             ]
         )
 
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 0.72
+    thickness = 2
+    line_height = 28
+    panel_x = 10
+    panel_y = 10
+    panel_width = 420
+    panel_height = 16 + line_height * len(lines)
+    cv2.rectangle(
+        frame,
+        (panel_x, panel_y),
+        (panel_x + panel_width, panel_y + panel_height),
+        (0, 0, 0),
+        -1,
+    )
+    cv2.rectangle(
+        frame,
+        (panel_x, panel_y),
+        (panel_x + panel_width, panel_y + panel_height),
+        (40, 180, 40),
+        2,
+    )
+
     for index, line in enumerate(lines):
         cv2.putText(
             frame,
             line,
-            (16, 28 + index * 22),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.6,
+            (panel_x + 12, panel_y + 26 + index * line_height),
+            font,
+            font_scale,
             (30, 220, 30),
-            2,
+            thickness,
             cv2.LINE_AA,
         )
 

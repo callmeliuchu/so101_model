@@ -367,6 +367,49 @@ Notes:
 - on macOS, Camera permission must be granted to the host app that launches the script, such as `Terminal.app`, `iTerm2`, or `Codex`
 - if camera open fails on macOS, try `--backend avfoundation`
 
+## Real + Sim Teleop
+
+There is also a dual-backend webcam teleop runner that can send the same skeleton-derived action to:
+
+- the MuJoCo sim
+- the real SO101 follower robot
+- or both at once
+
+Launcher:
+
+- [run_webcam_dual_teleop.sh](/Users/liuchu/codes/so101_model/run_webcam_dual_teleop.sh)
+
+Script:
+
+- [webcam_dual_teleop.py](/Users/liuchu/codes/so101_model/webcam_dual_teleop.py)
+
+Recommended usage:
+
+```bash
+cd /Users/liuchu/codes/so101_model
+
+./run_webcam_dual_teleop.sh \
+  --target both \
+  --model scene \
+  --mirror \
+  --mapping ik \
+  --robot-port /dev/tty.usbmodem5B421378821 \
+  --robot-id my_awesome_follower_arm
+```
+
+Safety behavior:
+
+- the real robot starts in `disabled` send mode by default
+- press `e` in the webcam window to toggle real-robot command sending on or off
+- press `Space` to capture a fresh neutral pose before enabling the real robot
+
+Important notes:
+
+- the real robot path reuses the local `lerobot` checkout under `/Users/liuchu/codes/lerobot`
+- real robot commands are clamped with `--max-relative-target`, default `8.0`
+- both real and sim teleop paths also clamp each outgoing joint command to the SO101 model's absolute joint range before sending
+- start with `--target sim` or `--target both` and keep the real path disabled until the sim motion looks correct
+
 ## LeRobot Calibration Files
 
 The LeRobot default calibration directory is not inside the repo. By default it resolves to:

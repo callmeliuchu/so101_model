@@ -242,6 +242,29 @@ class SO101SimRobot:
         alpha = (ctrl - low) / (high - low)
         return float(100.0 * alpha)
 
+    def action_limits(self, body_mode: str) -> dict[str, tuple[float, float]]:
+        limits: dict[str, tuple[float, float]] = {}
+        for name in BODY_JOINTS:
+            low, high = self._ctrl_range(name)
+            if body_mode == "degrees":
+                limits[f"{name}.pos"] = (float(np.rad2deg(low)), float(np.rad2deg(high)))
+            elif body_mode == "radians":
+                limits[f"{name}.pos"] = (low, high)
+            else:
+                limits[f"{name}.pos"] = (-100.0, 100.0)
+        limits["gripper.pos"] = (0.0, 100.0)
+        return limits
+
+    def clamp_action(self, action: dict[str, float], body_mode: str) -> dict[str, float]:
+        limits = self.action_limits(body_mode)
+        clipped: dict[str, float] = {}
+        for key, value in action.items():
+            if key not in limits:
+                continue
+            low, high = limits[key]
+            clipped[key] = float(np.clip(value, low, high))
+        return clipped
+
     def _pin_joint_position(self, name: str, position: float) -> None:
         joint_id = self.joint_ids[name]
         qpos_adr = self.model.jnt_qposadr[joint_id]
